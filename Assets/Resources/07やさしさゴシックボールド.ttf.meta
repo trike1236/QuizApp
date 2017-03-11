@@ -1,0 +1,21 @@
+fileFormatVersion: 2
+guid: d3f284d62e0171e4f987a9f1b76ac7e5
+timeCreated: 1488643624
+licenseType: Free
+TrueTypeFontImporter:
+  serializedVersion: 4
+  fontSize: 16
+  forceTextureCase: -2
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontName: 07YasashisaGothicBold
+  fontNames:
+  - 07YasashisaGothicBold
+  fallbackFontReferences: []
+  customCharacters: 
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
