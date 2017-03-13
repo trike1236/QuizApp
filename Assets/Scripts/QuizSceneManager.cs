@@ -12,11 +12,21 @@ public enum GameState
     Result
 }
 
+public enum MyResultState
+{
+    Wait,
+    OnlyAnswer,
+    RivalAnswer,
+    IsFast,
+    IsSlow
+}
+
 public class QuizSceneManager : Photon.MonoBehaviour {
     public static QuizSceneManager Instance;
 
     private GameState currentGameState;
 
+    private MyResultState myResultState;
     //クイズの個数　どこかで入力させる
     int quizCount = 5;
 
@@ -24,6 +34,7 @@ public class QuizSceneManager : Photon.MonoBehaviour {
     QuizUIManager quizUIManager;
     QuizGetter quizGetter;
     MultiQuizManager multiQuizManager;
+    GameObject userManager;
     /*
     GameObject quizTextPanel;
     GameObject Button1;
@@ -35,8 +46,7 @@ public class QuizSceneManager : Photon.MonoBehaviour {
     int usersAnswerNum;
 
     float maxTime;
-
-    public static bool isFast;
+    
 
     int quizTurn;
 
@@ -60,6 +70,8 @@ public class QuizSceneManager : Photon.MonoBehaviour {
         quizGetter = QuizManager.GetComponent<QuizGetter>();
         multiQuizManager = GameObject.Find("MultiQuizManager").GetComponent<MultiQuizManager>();
 
+        userManager = UserManager.Instance.gameObject;
+        userManager.GetComponent<UserManager>().SaveUserData(2);
         SetCurrentState(GameState.Start);
     }
 
@@ -67,6 +79,11 @@ public class QuizSceneManager : Photon.MonoBehaviour {
     {
         currentGameState = state;
         OnGameStateChanged(currentGameState);
+    }
+
+    public void SetResultState(MyResultState state)
+    {
+        myResultState = state;
     }
 
     void OnGameStateChanged(GameState state)
@@ -95,6 +112,7 @@ public class QuizSceneManager : Photon.MonoBehaviour {
 	//startは呼び出し1回のみ　終わったらprepare
 	IEnumerator StartAction() {
         //クイズを受信するコルーチンを呼び出す　終わったらリストをコピーする
+        yield return StartCoroutine(multiQuizManager.WaitIntoRoom());
         yield return StartCoroutine(quizGetter.RequestQuizes(SaveReceivedQuizes,quizCount));
         quizTurn = -1;      //ここ汚い
         //とりあえず時間のマックスは10秒に設定
@@ -108,7 +126,14 @@ public class QuizSceneManager : Photon.MonoBehaviour {
     IEnumerator PrepareAction()
     {
         quizTurn++;
+        Debug.Log("Turn : " + quizTurn);
         multiQuizManager.InitTime();
+        myResultState = MyResultState.Wait;
+
+        //マスターがゲームスタートの合図を送る
+        //初回のみボタンクリックでスタート、2回目以降はタイミングのみ合わせる
+        yield return StartCoroutine(multiQuizManager.StartFromMaster(quizTurn));
+
         yield return new WaitForSeconds(1);
         quizUIManager.SetQuizOnPanel(quizes, quizTurn);
         SetCurrentState(GameState.Wait);
@@ -121,23 +146,31 @@ public class QuizSceneManager : Photon.MonoBehaviour {
         usersAnswerNum = 0;
         maxTime = 10f;
         yield return StartCoroutine(quizUIManager.TimerAndButtonCoroutine(maxTime));
-
-        if (usersAnswerNum != 0) Debug.Log("Button:" + usersAnswerNum);
-        else Debug.Log("time UP");      //テストでもanswerに飛ばないように分岐するべき
+        //早い遅い判定の受付待ち
+        yield return StartCoroutine(WaitSetMyState());
 
         SetCurrentState(GameState.Answer);
     }
 
     void AnswerAction()
     {
-        if(usersAnswerNum == quizes[quizTurn].answer_num)
+        if ((myResultState == MyResultState.OnlyAnswer) || (myResultState == MyResultState.IsFast))
         {
-            Debug.Log("right!");
-            quizResults.Add(true);
+            if (usersAnswerNum == quizes[quizTurn].answer_num)
+            {
+                QuizUIManager.DebugLogWindow("right!");
+                quizResults.Add(true);
+            }
+            else
+            {
+                QuizUIManager.DebugLogWindow("Wrong!");
+                quizResults.Add(false);
+            }
         }else
         {
-            Debug.Log("wrong!");
+            QuizUIManager.DebugLogWindow("Too Late");
             quizResults.Add(false);
+
         }
 
         //クイズが最後だったら
@@ -156,7 +189,7 @@ public class QuizSceneManager : Photon.MonoBehaviour {
     {
         string quizTF = JoinQuizTFData(quizResults);
         string quizId = JoinQuizId(quizes);
-        int userId = UserManager.GetUserId();
+        int userId = UserManager.userData.id;
         yield return StartCoroutine(quizGetter.PostResult(quizTF,quizId,userId));
     }
     //コルーチンの結果をコールバックで受け取ってquizesに保存する
@@ -187,6 +220,14 @@ public class QuizSceneManager : Photon.MonoBehaviour {
         {
             usersAnswerNum = answerNum;
             quizUIManager.hasAnswered = true;
+        }
+    }
+
+    IEnumerator WaitSetMyState()
+    {
+        while(myResultState == MyResultState.Wait)
+        {
+            yield return null;
         }
     }
     

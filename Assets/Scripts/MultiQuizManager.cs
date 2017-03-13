@@ -10,48 +10,138 @@ public class MultiQuizManager : Photon.PunBehaviour {
     float myTime;
     float otherTime;
 
+    bool hasStarted = false;
+    public bool hasButtonPushed;
+
     QuizUIManager quizUIManager;
+    QuizSceneManager quizSceneManager;
+    QuizGetter quizGetter;
+    enum ResultState
+    {
+        Other,
+        Win,
+        Lose
+    }
 
     void Start() {
 
         quizUIManager = GameObject.Find("GameManager").GetComponent<QuizUIManager>();
-        _photonView = GetComponent<PhotonView>();
-
+        _photonView = PhotonView.Get(this);
+        quizSceneManager = QuizSceneManager.Instance.GetComponent<QuizSceneManager>();
+        quizGetter = GameObject.Find("QuizManager").GetComponent<QuizGetter>();
     }
+
+    public IEnumerator WaitIntoRoom()
+    {
+        //ルームに入るまで待つ
+        while (!PhotonNetwork.inRoom) yield return new WaitForEndOfFrame();
+        if (PhotonNetwork.isMasterClient) quizGetter.RandomRoomId();
+        while (quizGetter.quizRoomId == 0) yield return new WaitForEndOfFrame();
+        //UserManager.isRoomMaster = PhotonNetwork.isMasterClient;
+    }
+
+    public IEnumerator StartFromMaster(int quizTurn)
+    {
+        hasButtonPushed = false;
+        Debug.Log("inRoom:" + PhotonNetwork.inRoom);
+        
+        Debug.Log("isMasterClient:" + PhotonNetwork.isMasterClient);
+
+        //最初のみスタートボタンを出して一斉にスタート
+        if (PhotonNetwork.isMasterClient)
+        {
+            if (quizTurn == 0)
+            {
+                quizUIManager.ShowStartButton();
+                while (!hasButtonPushed) yield return new WaitForEndOfFrame();
+            }
+            photonView.RPC("StartFlag", PhotonTargets.AllViaServer);
+        }
+
+        while (!hasStarted)
+        {
+            Debug.Log("startwait");
+            yield return new WaitForEndOfFrame();
+        }
+        hasStarted = false;
+    }
+
+    [PunRPC]
+    void StartFlag()
+    {
+        hasStarted = true;
+    }
+    
 
     public void SendAllAnswerTime(float time) {
         myTime = time;
-        _photonView.RPC("SendTimeRPC", PhotonTargets.Others,time,isFasterThan());
+        Debug.Log(myTime);
+        _photonView.RPC("SendTimeRPC", PhotonTargets.Others,time/*,isFasterThan()*/);
 
     }
 
     [PunRPC]
-    private void SendTimeRPC(float time,UnityAction callback)
+    void SendTimeRPC(float time/*,UnityAction callback*/)
     {
         Debug.Log("test");
         otherTime = time;
 
-        //相手から呼ばれたときに自分がまだ答えていない(mytimeが0)なら
+        //いい感じに分岐
         if(myTime == 0)
         {
-            _photonView.RPC("ReturnResult", PhotonTargets.Others,"Other");
+            //相手から呼ばれたときに自分がまだ答えていない(mytimeが0)なら
+            _photonView.RPC("ReturnResult", PhotonTargets.Others,MyResultState.OnlyAnswer);
+            quizSceneManager.SetResultState(MyResultState.RivalAnswer);
             //自分のコルーチンは止まってゲージが止まる
             quizUIManager.otherAnswered = true;
             //負けUIアクションなどの更新
-            quizUIManager.LoseUIAction();
+            //quizUIManager.LoseUIAction();
+        }else if(myTime != 0)
+        {
+            //相手から呼ばれたときに自分が答えていたら
+            //送られてきたタイムと比較して分岐
+            if (myTime < time)
+            {
+                //自分の方が遅ければ、相手に早かったって信号を送って自分には遅かった時の処理
+                _photonView.RPC("ReturnResult", PhotonTargets.Others, MyResultState.IsFast);
+                SendMeResult(MyResultState.IsSlow);
+            }
+            else if(myTime <= time)
+            {//自分の方が早ければ、相手に早かったって信号を送って自分には早かった時の処理
+                _photonView.RPC("ReturnResult", PhotonTargets.Others, MyResultState.IsSlow);
+                SendMeResult(MyResultState.IsFast);
+
+            }
         }
         //callback();
     }
 
     [PunRPC]
-    private void ReturnResult(string result)
+    private void ReturnResult(MyResultState state)
     {
-        //自分のほうが圧倒的に早かったなら　相手から送られてきたのでotherになってるけど早かったのは自分
-        if(result == "Other")
+        switch (state)
         {
-            QuizSceneManager.isFast = true;
+            case MyResultState.OnlyAnswer:
+                quizSceneManager.SetResultState(MyResultState.OnlyAnswer);
+                break;
+            case MyResultState.IsFast:
+                quizSceneManager.SetResultState(MyResultState.IsFast);
+
+                break;
+            case MyResultState.IsSlow:
+                quizSceneManager.SetResultState(MyResultState.IsSlow);
+
+                break;
         }
+        
     }
+
+    private void SendMeResult(MyResultState state)
+    {
+        quizSceneManager.SetResultState(state);
+    }
+
+    /*
     public bool isFasterThan()
     {
         if (myTime > otherTime)
@@ -59,11 +149,31 @@ public class MultiQuizManager : Photon.PunBehaviour {
             return true;
         }
         else return false;
-    }
+    }*/
 
     public void InitTime()
     {
         myTime = 0;
         otherTime = 0;
     }
+
+    void OnPhotonPlayerConnected(PhotonPlayer player)
+    {
+        if (PhotonNetwork.isMasterClient)
+        {
+            if (quizGetter.quizRoomId == 0)
+            {
+                quizGetter.RandomRoomId();
+            }
+            _photonView.RPC("SendQuizRoomId",PhotonTargets.Others,quizGetter.quizRoomId);
+
+        }
+    }
+
+    [PunRPC]
+    void SendQuizRoomId(int roomId)
+    {
+        quizGetter.quizRoomId = roomId;
+    }
+
 }

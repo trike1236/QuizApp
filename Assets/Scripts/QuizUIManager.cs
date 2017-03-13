@@ -18,12 +18,20 @@ public class QuizUIManager : MonoBehaviour {
 
     MultiQuizManager multiQuizManager;
 
+    GameObject TestButton;
+    static GameObject DebugWindow;
+
     public bool hasAnswered = false;
     public bool otherAnswered = false;
 
     void Start()
     {
         multiQuizManager = GameObject.Find("MultiQuizManager").GetComponent<MultiQuizManager>();
+
+        //debug
+        TestButton = GameObject.Find("Canvas/Button");
+        TestButton.SetActive(false);
+        DebugWindow = GameObject.Find("Canvas/DebugWindow/DebugText");
     }
     public void GetUIPanel(float maxTime)
     {
@@ -35,6 +43,9 @@ public class QuizUIManager : MonoBehaviour {
         Timer = GameObject.Find("Canvas/Panel/Timer");
         timerSlider = Timer.GetComponent<Slider>();
         timerSlider.maxValue = maxTime;
+
+        //Debug用
+
     }
 
     //各UIに問題と選択肢を登録する
@@ -57,6 +68,7 @@ public class QuizUIManager : MonoBehaviour {
         float timeCount = maxTime;
         bool isTimeOver = false;
         hasAnswered = false;
+        otherAnswered = false;
         while ((!isTimeOver) && (!hasAnswered))
         {
             //Debug.Log(timeCount);
@@ -68,6 +80,8 @@ public class QuizUIManager : MonoBehaviour {
             }
             if (otherAnswered)
             {
+
+                //負けUIアクションなどの更新
                 LoseUIAction();
                 yield break;
             }
@@ -92,4 +106,21 @@ public class QuizUIManager : MonoBehaviour {
     }
     //相手のtimerのバーを更新するメソッド
 
+    //ゲームマスターが最初にクイズゲームをスタートするときにボタンを出現させるメソッド
+    public void ShowStartButton()
+    {
+        TestButton.SetActive(true);
+    }
+    //上のボタンが押されたときにフラグを立てる
+    public void MasterSendStart()
+    {
+        multiQuizManager.hasButtonPushed = true;
+    }
+
+
+
+    public static void DebugLogWindow(string text)
+    {
+        DebugWindow.GetComponent<Text>().text = text;
+    }
 }

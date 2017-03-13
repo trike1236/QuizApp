@@ -6,6 +6,7 @@ using System;
 public class UserManager : MonoBehaviour{
 
     public string url;
+    public static bool isRoomMaster;
     //public delegate void testCallBack(int id, string name, string add_time, int count_all, int count_collect);
     //public delegate void testCallBack(UserData);
 
@@ -72,18 +73,19 @@ public class UserManager : MonoBehaviour{
 
     public void SaveUserData(int id)
     {
-        StartCoroutine(RequestUserData(SendUserData, id));
+        StartCoroutine(RequestUserData(() => Debug.Log("test"),id));
     }
-    /*public void TestUserRequest()
-    {
-        StartCoroutine(RequestUserData(SendUserData, 1));
-    }*/
 
+    public void TestUserRequest()
+    {
+        
+    }
+    /*
     public void SendUserData()
     {
 
         GameObject UIManager = GameObject.Find("UIManager");
         UIManager.GetComponent<UserDataController>().UserDataReceived(userData.id, userData.name, userData.add_time, userData.count_all, userData.count_correct);
         Debug.Log("test");
-    }
+    }*/
 }

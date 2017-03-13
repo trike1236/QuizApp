@@ -39,4 +39,6 @@ MonoBehaviour:
   - RequestForPickupTimes
   - SendTimeRPC
   - ReturnResult
+  - StartFlag
+  - SendQuizRoomId
   DisableAutoOpenWizard: 1

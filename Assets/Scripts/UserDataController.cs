@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System;
 
 public class UserDataController : MonoBehaviour {
 	public Text userIdText;
@@ -10,23 +11,26 @@ public class UserDataController : MonoBehaviour {
 	public Text	totalAnswerText;
 	public Text correctAnswerText;
 
-    int userId = 2;
+    int userId = 3;
+
+    UserManager userManager;
 	// Use this for initialization
 	void Start () {
-        GameObject userManager = GameObject.Find("UserManager");
-        userManager.GetComponent<UserManager>().SaveUserData(userId);
+        userManager = GameObject.Find("UserManager").GetComponent<UserManager>();
+        Action delegateMethod = UserDataReceived;
+        StartCoroutine(userManager.RequestUserData(delegateMethod, userId));
 	}
 	
 	// Update is called once per frame
 	void Update () {
 	}
 
-	public void UserDataReceived(int userId,string userName,string createTime,int totalAnswer,int correctAnswer){
-		sendUserId (userId);
-        sendUserName(userName);
-        sendCreateTime(createTime);
-        sendTotalAnswer(totalAnswer);
-        sendCorrectAnswer(correctAnswer);
+	public void UserDataReceived(){
+        sendUserId(UserManager.userData.id);
+        sendUserName(UserManager.userData.name);
+        sendCreateTime(UserManager.userData.add_time);
+        sendTotalAnswer(UserManager.userData.count_all);
+        sendCorrectAnswer(UserManager.userData.count_correct);
 	}
 
 	//自分のIDのUIを更新するメソッド

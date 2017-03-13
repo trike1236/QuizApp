@@ -7,8 +7,7 @@ public class SceneLoader : MonoBehaviour {
 
 	public void SceneQuiz()
     {
-        PhotonManager.CreateOrJoinRoom(1236);
-        Debug.Log(PhotonNetwork.inRoom);
+        PhotonManager.CreateOrJoinRoom(1234);
         SceneManager.LoadScene("Quiz");
 	}
 

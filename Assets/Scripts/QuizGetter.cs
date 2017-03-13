@@ -7,7 +7,7 @@ using LitJson;
 
 public class QuizGetter : MonoBehaviour {
     string quizUrl;
-
+    public int quizRoomId = 0;
     [Serializable]
     public class QuizData
     {
@@ -45,7 +45,10 @@ public class QuizGetter : MonoBehaviour {
         //StartCoroutine(RequestQuizOne());
     }
 
-
+    public void RandomRoomId()
+    {
+        quizRoomId = UnityEngine.Random.Range(1, 9999);
+    }
     public IEnumerator RequestQuizOne()
     {
         
@@ -74,11 +77,13 @@ public class QuizGetter : MonoBehaviour {
     
 }
 
+
     public IEnumerator RequestQuizes(UnityAction<List<Quizes>> callback,int quizCount)
     {
         WWWForm wwwForm = new WWWForm();
         wwwForm.AddField("quiz_count", quizCount);
         wwwForm.AddField("type", "yontaku");        //4択だけど直そう
+        wwwForm.AddField("room_id", quizRoomId);
 
         WWW result = new WWW(quizUrl, wwwForm);
         //Debug.Log("test");
