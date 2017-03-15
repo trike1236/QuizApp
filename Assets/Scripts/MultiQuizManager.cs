@@ -73,18 +73,18 @@ public class MultiQuizManager : Photon.PunBehaviour {
     }
     
 
-    public void SendAllAnswerTime(float time) {
+    public void SendAllAnswerTime(float time,bool answer) {
         myTime = time;
         Debug.Log(myTime);
-        _photonView.RPC("SendTimeRPC", PhotonTargets.Others,time/*,isFasterThan()*/);
+        _photonView.RPC("SendTimeRPC", PhotonTargets.Others,time,answer/*,isFasterThan()*/);
 
     }
 
     [PunRPC]
-    void SendTimeRPC(float time/*,UnityAction callback*/)
+    void SendTimeRPC(float time,bool answer/*,UnityAction callback*/)
     {
         otherTime = time;
-
+        quizSceneManager.isRivalCorrect = answer;
         //いい感じに分岐
         if(myTime == 0)
         {

@@ -32,9 +32,11 @@ public class QuizSceneManager : Photon.MonoBehaviour {
 
     GameObject QuizManager;
     QuizUIManager quizUIManager;
+    CardUIManager cardUIManager;
     QuizGetter quizGetter;
     MultiQuizManager multiQuizManager;
     GameObject userManager;
+
     /*
     GameObject quizTextPanel;
     GameObject Button1;
@@ -43,12 +45,13 @@ public class QuizSceneManager : Photon.MonoBehaviour {
     GameObject Button4;
     */
     bool hasAnswered;
-    int usersAnswerNum;
+    public static int usersAnswerNum;
 
     float maxTime;
     
-
     int quizTurn;
+
+    public bool isRivalCorrect;
 
     List<Quizes> quizes = new List<Quizes>();
     public class Quizes
@@ -67,6 +70,7 @@ public class QuizSceneManager : Photon.MonoBehaviour {
         Instance = this;
         QuizManager = GameObject.Find("QuizManager");
         quizUIManager = gameObject.GetComponent<QuizUIManager>();
+        cardUIManager = gameObject.GetComponent<CardUIManager>();
         quizGetter = QuizManager.GetComponent<QuizGetter>();
         multiQuizManager = GameObject.Find("MultiQuizManager").GetComponent<MultiQuizManager>();
 
@@ -153,25 +157,73 @@ public class QuizSceneManager : Photon.MonoBehaviour {
         SetCurrentState(GameState.Answer);
     }
 
+
+    //分岐　長すぎ
     void AnswerAction()
     {
-        if ((myResultState == MyResultState.OnlyAnswer) || (myResultState == MyResultState.IsFast))
+        switch (myResultState)
         {
-            if (usersAnswerNum == quizes[quizTurn].answer_num)
-            {
-                QuizUIManager.DebugLogWindow("right!");
-                quizResults.Add(true);
-            }
-            else
-            {
-                QuizUIManager.DebugLogWindow("Wrong!");
-                quizResults.Add(false);
-            }
-        }else
-        {
-            QuizUIManager.DebugLogWindow("Too Late");
-            quizResults.Add(false);
+            case MyResultState.IsFast:
+                if (IsAnswerCorrect())
+                {
 
+                    QuizUIManager.DebugLogWindow("right!");
+                    quizResults.Add(true);
+                    break;
+                }
+                else
+                {
+                    QuizUIManager.DebugLogWindow("Wrong!");
+                    quizResults.Add(false);
+                    break;
+                }
+
+            case MyResultState.OnlyAnswer:
+                {
+                    if (IsAnswerCorrect())
+                    {
+                        quizUIManager.ToEmptyBar(false);
+                        QuizUIManager.DebugLogWindow("right!");
+                        quizResults.Add(true);
+                        break;
+                    }
+                    else
+                    {
+                        quizUIManager.ToEmptyBar(false);
+                        QuizUIManager.DebugLogWindow("Wrong!");
+                        quizResults.Add(false);
+                        break;
+                    }
+                }
+            case MyResultState.IsSlow:
+                if (isRivalCorrect)
+                {
+
+                    QuizUIManager.DebugLogWindow("Too Late");
+                    quizResults.Add(false);
+                    break;
+                }else
+                {
+                    QuizUIManager.DebugLogWindow("Too Late");
+                    quizResults.Add(false);
+                    break;
+                }
+            case MyResultState.RivalAnswer:
+                if (isRivalCorrect)
+                {
+                    quizUIManager.ToEmptyBar(true);
+
+                    QuizUIManager.DebugLogWindow("Too Late");
+                    quizResults.Add(false);
+                    break;
+                }
+                else
+                {
+                    quizUIManager.ToEmptyBar(true);
+                    QuizUIManager.DebugLogWindow("Too Late");
+                    quizResults.Add(false);
+                    break;
+                }
         }
 
         //クイズが最後だったら
@@ -223,6 +275,7 @@ public class QuizSceneManager : Photon.MonoBehaviour {
         {
             usersAnswerNum = answerNum;
             quizUIManager.hasAnswered = true;
+            quizUIManager.isAnswerCorrect = IsAnswerCorrect();
         }
     }
 
@@ -260,6 +313,11 @@ public class QuizSceneManager : Photon.MonoBehaviour {
         return postQuizTF.Substring(1);
     }
 
+    public bool IsAnswerCorrect()
+    {
+        if (usersAnswerNum == quizes[quizTurn].answer_num) return true;
+        else return false;
+    }
 
     void OnGUI()
     {

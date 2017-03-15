@@ -28,6 +28,11 @@ public class QuizUIManager : MonoBehaviour
     public bool hasAnswered = false;
     public bool otherAnswered = false;
 
+    public bool isAnswerCorrect = false;
+    public bool isRivalAnswerCorrect = false;
+
+
+
     public float timermaxValue;
 
     void Awake()
@@ -106,7 +111,7 @@ public class QuizUIManager : MonoBehaviour
         //答えたならタイマーはそのままで
         if (hasAnswered == true)
         {
-            multiQuizManager.SendAllAnswerTime(maxTime - timeCount);
+            multiQuizManager.SendAllAnswerTime(maxTime - timeCount,isAnswerCorrect);
             yield break;
         }
         timeCount = 0f;
@@ -143,6 +148,29 @@ public class QuizUIManager : MonoBehaviour
         BackButton.SetActive(true);
     }
 
+    //ゲージを0にするメソッド
+    public void ToEmptyBar(bool mybar)
+    {
+        float currentBar;
+        if (mybar)
+        {
+            currentBar = timerSlider.value;
+            DOVirtual.Float(currentBar, 0f, 0.5f, value =>
+               {
+                   timerSlider.value = value;
+               });
+        }else
+        {
+            currentBar = rivalTimerSlider.value;
+            DOVirtual.Float(currentBar, 0f, 0.5f, value =>
+            {
+                rivalTimerSlider.value = value;
+            });
+        }
+    }
+
+    //ゲージをmaxにしてtime分減らす動きをするメソッド
+    //相手のバーのみなのでバーの指定はしない
     public void ToMaxIncreaseRivalBar(float time)
     {
         var sequence = DOTween.Sequence();
