@@ -55,6 +55,9 @@ public class QuizSceneManager : MonoBehaviour {
     public bool isRivalCorrect;
     public CardSelectState rivalCard;
 
+    static public bool isLiving = true;
+    static public bool isRivalLiving = true;
+
     List<Quizes> quizes = new List<Quizes>();
     public class Quizes
     {
@@ -141,8 +144,7 @@ public class QuizSceneManager : MonoBehaviour {
         //初回のみボタンクリックでスタート、2回目以降はタイミングのみ合わせる
         yield return StartCoroutine(multiQuizManager.StartFromMaster(quizTurn));
 
-        yield return new WaitForSeconds(1);
-        quizUIManager.SetQuizOnPanel(quizes, quizTurn);
+        yield return new WaitForSeconds(1);quizUIManager.SetQuizOnPanel(quizes, quizTurn);
         SetCurrentState(GameState.Wait);
     }
 
@@ -216,6 +218,7 @@ public class QuizSceneManager : MonoBehaviour {
             case MyResultState.RivalAnswer:
                 if (isRivalCorrect)
                 {
+                    quizUIManager.ToMaxIncreaseRivalBar(multiQuizManager.otherTime);
                     quizUIManager.ToEmptyBar(true);
 
                     QuizUIManager.DebugLogWindow("Too Late");
@@ -224,12 +227,16 @@ public class QuizSceneManager : MonoBehaviour {
                 }
                 else
                 {
+                    quizUIManager.ToMaxIncreaseRivalBar(multiQuizManager.otherTime);
                     quizUIManager.ToEmptyBar(true);
                     QuizUIManager.DebugLogWindow("Too Late");
                     quizResults.Add(false);
                     break;
                 }
         }
+
+        //相手のカードを出す
+        cardUIManager.RivalCardShow(rivalCard);
 
         if((myResultState == MyResultState.IsFast)||(myResultState == MyResultState.OnlyAnswer)){
             yield return StartCoroutine(WinCoroutine());
@@ -239,8 +246,10 @@ public class QuizSceneManager : MonoBehaviour {
             yield return StartCoroutine(LoseCoroutine());
         }
 
+        cardUIManager.RivalCardHide();
+
         //クイズが最後だったら
-        if ((quizTurn + 1) == quizCount)
+        if (((quizTurn + 1) == quizCount) || !isLiving || !isRivalLiving)
         {
             SetCurrentState(GameState.Result);
         }
@@ -265,12 +274,16 @@ public class QuizSceneManager : MonoBehaviour {
     {
         //戦う
         CardSelectState myCard = cardUIManager.cardSelectState;
+
+        //ゲージをダメージによって減らす　第2引数trueで自分の(fasleで相手)
+        quizUIManager.DamageHPGage(30f, false);
         Debug.Log(rivalCard);
         yield return new WaitForSeconds(3);
     }
 
     IEnumerator LoseCoroutine()
     {
+        quizUIManager.DamageHPGage(30f,true);
         Debug.Log(rivalCard);
         yield return new WaitForSeconds(3);
     }

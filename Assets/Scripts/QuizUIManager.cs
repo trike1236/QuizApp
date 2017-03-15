@@ -38,12 +38,24 @@ public class QuizUIManager : MonoBehaviour
 
     public float timermaxValue;
 
+
+    public float HP = 100f;
+    public float currentHP;
+    public Image HPGage;
+
+    public float rivalHP = 100f;
+    public float currentRivalHP;
+    public Image rivalHPGage;
+
     void Awake()
     {
         BackButton = GameObject.Find("Canvas/Back");
         BackButton.SetActive(false);
 
         cardUIManager = gameObject.GetComponent<CardUIManager>();
+
+        currentHP = HP;
+        currentRivalHP = rivalHP;
     }
     void Start()
     {
@@ -68,6 +80,9 @@ public class QuizUIManager : MonoBehaviour
         rivalTimerSlider = GameObject.Find("Canvas/Panel/RivalTimer").GetComponent<Slider>();
         rivalTimerSlider.maxValue = maxTime;
 
+        HPGage = GameObject.Find("Canvas/MyHP").GetComponent<Image>();
+        rivalHPGage = GameObject.Find("Canvas/RivalHP").GetComponent<Image>();
+
         //Debug用
 
     }
@@ -81,7 +96,11 @@ public class QuizUIManager : MonoBehaviour
         Button2.GetComponent<Text>().text = array[1];
         Button3.GetComponent<Text>().text = array[2];
         Button4.GetComponent<Text>().text = array[3];
+        
+        //最初のみ実行　デフォルトでカード2が選択されているようにする
+        if (cardUIManager.cardSelectState == CardSelectState.None) cardUIManager.ChangeCardSelectState(CardSelectState.Card2);
         cardUIManager.canSelectCard = true;
+
         //Debug.Log(tmpquizes[i].text);
     }
 
@@ -190,5 +209,27 @@ public class QuizUIManager : MonoBehaviour
                  {
                      rivalTimerSlider.value = value;
                  }));
+    }
+
+    public void DamageHPGage(float damage,bool isMine)
+    {
+        if (isMine)
+        {
+            DOVirtual.Float(currentHP / HP, (currentHP - damage) / HP, 1f, value =>
+        {
+            HPGage.fillAmount = value;
+        });
+            currentHP -= damage;
+        }else
+        {
+            DOVirtual.Float(currentRivalHP / rivalHP, (currentRivalHP - damage) / rivalHP, 1f, value =>
+            {
+                rivalHPGage.fillAmount = value;
+            });
+            currentRivalHP -= damage;
+
+        }
+        if (currentHP <= 0)            QuizSceneManager.isLiving = false;
+        else if (currentRivalHP <= 0) QuizSceneManager.isRivalLiving = false;
     }
 }

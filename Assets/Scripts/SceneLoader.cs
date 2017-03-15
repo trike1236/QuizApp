@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class SceneLoader : MonoBehaviour {
+public class SceneLoader : Photon.MonoBehaviour {
 
 	public void SceneQuiz()
     {
@@ -16,7 +16,8 @@ public class SceneLoader : MonoBehaviour {
 	}
 
 	public void SceneMain(){
-		SceneManager.LoadScene ("Main");
+        SceneManager.LoadScene("Main");
+        if (PhotonNetwork.inRoom) PhotonNetwork.LeaveRoom();
 	}
 
 }
