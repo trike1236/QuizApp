@@ -54,13 +54,13 @@ public class MultiQuizManager : Photon.PunBehaviour {
             {
                 quizUIManager.ShowStartButton();
                 while (!hasButtonPushed) yield return new WaitForEndOfFrame();
+                quizUIManager.TestButton.SetActive(false);
             }
             photonView.RPC("StartFlag", PhotonTargets.AllViaServer);
         }
 
         while (!hasStarted)
         {
-            Debug.Log("startwait");
             yield return new WaitForEndOfFrame();
         }
         hasStarted = false;
@@ -83,7 +83,6 @@ public class MultiQuizManager : Photon.PunBehaviour {
     [PunRPC]
     void SendTimeRPC(float time/*,UnityAction callback*/)
     {
-        Debug.Log("test");
         otherTime = time;
 
         //いい感じに分岐
@@ -100,6 +99,9 @@ public class MultiQuizManager : Photon.PunBehaviour {
         {
             //相手から呼ばれたときに自分が答えていたら
             //送られてきたタイムと比較して分岐
+
+            //相手のタイマーバーを更新
+            
             if (myTime < time)
             {
                 //自分の方が遅ければ、相手に早かったって信号を送って自分には遅かった時の処理

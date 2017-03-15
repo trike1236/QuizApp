@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using DG.Tweening;
 
-public class QuizUIManager : MonoBehaviour {
+public class QuizUIManager : MonoBehaviour
+{
 
 
     GameObject quizTextPanel;
@@ -14,16 +16,25 @@ public class QuizUIManager : MonoBehaviour {
 
     GameObject Timer;
     Slider timerSlider;
-    Slider otherTimerSlider;
+    Slider rivalTimerSlider;
 
     MultiQuizManager multiQuizManager;
 
-    GameObject TestButton;
+    public GameObject TestButton;
+    GameObject BackButton;
+
     static GameObject DebugWindow;
 
     public bool hasAnswered = false;
     public bool otherAnswered = false;
 
+    public float timermaxValue;
+
+    void Awake()
+    {
+        BackButton = GameObject.Find("Canvas/Back");
+        BackButton.SetActive(false);
+    }
     void Start()
     {
         multiQuizManager = GameObject.Find("MultiQuizManager").GetComponent<MultiQuizManager>();
@@ -35,6 +46,7 @@ public class QuizUIManager : MonoBehaviour {
     }
     public void GetUIPanel(float maxTime)
     {
+        timermaxValue = maxTime;
         quizTextPanel = GameObject.Find("Canvas/Panel/QuizText/Text");
         Button1 = GameObject.Find("Canvas/Panel/Choices/Button1/Text");
         Button2 = GameObject.Find("Canvas/Panel/Choices/Button2/Text");
@@ -43,6 +55,8 @@ public class QuizUIManager : MonoBehaviour {
         Timer = GameObject.Find("Canvas/Panel/Timer");
         timerSlider = Timer.GetComponent<Slider>();
         timerSlider.maxValue = maxTime;
+        rivalTimerSlider = GameObject.Find("Canvas/Panel/RivalTimer").GetComponent<Slider>();
+        rivalTimerSlider.maxValue = maxTime;
 
         //Debug用
 
@@ -90,9 +104,9 @@ public class QuizUIManager : MonoBehaviour {
         }
         //無限ループから抜けた理由(答えたかタイムアップ)で分岐
         //答えたならタイマーはそのままで
-        if(hasAnswered == true)
+        if (hasAnswered == true)
         {
-            multiQuizManager.SendAllAnswerTime(maxTime-timeCount);
+            multiQuizManager.SendAllAnswerTime(maxTime - timeCount);
             yield break;
         }
         timeCount = 0f;
@@ -122,5 +136,25 @@ public class QuizUIManager : MonoBehaviour {
     public static void DebugLogWindow(string text)
     {
         DebugWindow.GetComponent<Text>().text = text;
+    }
+
+    public void ShowBackButton()
+    {
+        BackButton.SetActive(true);
+    }
+
+    public void ToMaxIncreaseRivalBar(float time)
+    {
+        var sequence = DOTween.Sequence();
+        sequence.Append(
+        DOVirtual.Float(0f, timermaxValue, 0.3f, value =>
+            {
+                rivalTimerSlider.value = value;
+            }));
+        sequence.Append(
+            DOVirtual.Float(timermaxValue, timermaxValue - time, 0.5f, value =>
+                 {
+                     rivalTimerSlider.value = value;
+                 }));
     }
 }

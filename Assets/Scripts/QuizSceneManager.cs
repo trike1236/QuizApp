@@ -111,6 +111,7 @@ public class QuizSceneManager : Photon.MonoBehaviour {
     
 	//startは呼び出し1回のみ　終わったらprepare
 	IEnumerator StartAction() {
+        
         //クイズを受信するコルーチンを呼び出す　終わったらリストをコピーする
         yield return StartCoroutine(multiQuizManager.WaitIntoRoom());
         yield return StartCoroutine(quizGetter.RequestQuizes(SaveReceivedQuizes,quizCount));
@@ -191,6 +192,8 @@ public class QuizSceneManager : Photon.MonoBehaviour {
         string quizId = JoinQuizId(quizes);
         int userId = UserManager.userData.id;
         yield return StartCoroutine(quizGetter.PostResult(quizTF,quizId,userId));
+
+        quizUIManager.ShowBackButton();
     }
     //コルーチンの結果をコールバックで受け取ってquizesに保存する
     public void SaveReceivedQuizes(List<QuizGetter.Quizes> receivedQuizes)
