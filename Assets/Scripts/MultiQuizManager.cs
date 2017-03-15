@@ -7,13 +7,15 @@ public class MultiQuizManager : Photon.PunBehaviour {
 
     PhotonView _photonView;
 
-    float myTime;
-    float otherTime;
+    public float myTime;
+    public float otherTime;
+
 
     bool hasStarted = false;
     public bool hasButtonPushed;
 
     QuizUIManager quizUIManager;
+    CardUIManager cardUIManager;
     QuizSceneManager quizSceneManager;
     QuizGetter quizGetter;
     enum ResultState
@@ -29,6 +31,7 @@ public class MultiQuizManager : Photon.PunBehaviour {
         _photonView = PhotonView.Get(this);
         quizSceneManager = QuizSceneManager.Instance.GetComponent<QuizSceneManager>();
         quizGetter = GameObject.Find("QuizManager").GetComponent<QuizGetter>();
+        cardUIManager = GameObject.Find("GameManager").GetComponent<CardUIManager>();
     }
 
     public IEnumerator WaitIntoRoom()
@@ -73,23 +76,24 @@ public class MultiQuizManager : Photon.PunBehaviour {
     }
     
 
-    public void SendAllAnswerTime(float time,bool answer) {
+    public void SendAllAnswerTime(float time,bool answer,CardSelectState card) {
         myTime = time;
         Debug.Log(myTime);
-        _photonView.RPC("SendTimeRPC", PhotonTargets.Others,time,answer/*,isFasterThan()*/);
+        _photonView.RPC("SendTimeRPC", PhotonTargets.Others,time,answer,card/*,isFasterThan()*/);
 
     }
 
     [PunRPC]
-    void SendTimeRPC(float time,bool answer/*,UnityAction callback*/)
+    void SendTimeRPC(float time,bool answer,CardSelectState card/*,UnityAction callback*/)
     {
         otherTime = time;
+        quizSceneManager.rivalCard = card;
         quizSceneManager.isRivalCorrect = answer;
         //いい感じに分岐
         if(myTime == 0)
         {
             //相手から呼ばれたときに自分がまだ答えていない(mytimeが0)なら
-            _photonView.RPC("ReturnResult", PhotonTargets.Others,MyResultState.OnlyAnswer);
+            _photonView.RPC("ReturnResult", PhotonTargets.Others,MyResultState.OnlyAnswer,cardUIManager.cardSelectState);
             quizSceneManager.SetResultState(MyResultState.RivalAnswer);
             //自分のコルーチンは止まってゲージが止まる
             quizUIManager.otherAnswered = true;
@@ -119,8 +123,9 @@ public class MultiQuizManager : Photon.PunBehaviour {
     }
 
     [PunRPC]
-    private void ReturnResult(MyResultState state)
+    private void ReturnResult(MyResultState state,CardSelectState card)
     {
+        quizSceneManager.rivalCard = card;
         switch (state)
         {
             case MyResultState.OnlyAnswer:

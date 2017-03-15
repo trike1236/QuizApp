@@ -20,6 +20,8 @@ public class QuizUIManager : MonoBehaviour
 
     MultiQuizManager multiQuizManager;
 
+    CardUIManager cardUIManager;
+
     public GameObject TestButton;
     GameObject BackButton;
 
@@ -31,6 +33,7 @@ public class QuizUIManager : MonoBehaviour
     public bool isAnswerCorrect = false;
     public bool isRivalAnswerCorrect = false;
 
+    //public int rivalCard = 0;
 
 
     public float timermaxValue;
@@ -39,6 +42,8 @@ public class QuizUIManager : MonoBehaviour
     {
         BackButton = GameObject.Find("Canvas/Back");
         BackButton.SetActive(false);
+
+        cardUIManager = gameObject.GetComponent<CardUIManager>();
     }
     void Start()
     {
@@ -76,6 +81,7 @@ public class QuizUIManager : MonoBehaviour
         Button2.GetComponent<Text>().text = array[1];
         Button3.GetComponent<Text>().text = array[2];
         Button4.GetComponent<Text>().text = array[3];
+        cardUIManager.canSelectCard = true;
         //Debug.Log(tmpquizes[i].text);
     }
 
@@ -111,7 +117,7 @@ public class QuizUIManager : MonoBehaviour
         //答えたならタイマーはそのままで
         if (hasAnswered == true)
         {
-            multiQuizManager.SendAllAnswerTime(maxTime - timeCount,isAnswerCorrect);
+            multiQuizManager.SendAllAnswerTime(maxTime - timeCount,isAnswerCorrect,cardUIManager.cardSelectState);
             yield break;
         }
         timeCount = 0f;

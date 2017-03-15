@@ -4,6 +4,15 @@ using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening;
 
+
+public enum CardSelectState
+{
+    None = -1,
+    Card1,
+    Card2,
+    Card3
+}
+
 public class CardUIManager : MonoBehaviour {
 
 
@@ -13,15 +22,10 @@ public class CardUIManager : MonoBehaviour {
 
     float moveTime = 0.5f;
 
-    enum CardSelectState
-    {
-        None = -1,
-        Card1,
-        Card2,
-        Card3
-    }
+    public bool canSelectCard = false;
+    
 
-    CardSelectState cardSelectState = CardSelectState.None;
+    public CardSelectState cardSelectState = CardSelectState.None;
 
     // Use this for initialization
     void Start () {
@@ -72,19 +76,22 @@ public class CardUIManager : MonoBehaviour {
     //クリック時に呼ぶメソッド　どのカードかをint１～３で渡す
     public void OnClickCardEvent(int i)
     {
-        switch (i)
+        if (canSelectCard)
         {
-            case 1:
-                ChangeCardSelectState(CardSelectState.Card1);
-                break;
-            case 2:
-                ChangeCardSelectState(CardSelectState.Card2);
-                break;
-            case 3:
-                ChangeCardSelectState(CardSelectState.Card3);
-                break;
-            default:
-                break;
+            switch (i)
+            {
+                case 1:
+                    ChangeCardSelectState(CardSelectState.Card1);
+                    break;
+                case 2:
+                    ChangeCardSelectState(CardSelectState.Card2);
+                    break;
+                case 3:
+                    ChangeCardSelectState(CardSelectState.Card3);
+                    break;
+                default:
+                    break;
+            }
         }
     }
 

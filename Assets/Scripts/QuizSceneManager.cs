@@ -21,7 +21,7 @@ public enum MyResultState
     IsSlow
 }
 
-public class QuizSceneManager : Photon.MonoBehaviour {
+public class QuizSceneManager : MonoBehaviour {
     public static QuizSceneManager Instance;
 
     private GameState currentGameState;
@@ -37,6 +37,7 @@ public class QuizSceneManager : Photon.MonoBehaviour {
     MultiQuizManager multiQuizManager;
     GameObject userManager;
 
+
     /*
     GameObject quizTextPanel;
     GameObject Button1;
@@ -44,7 +45,7 @@ public class QuizSceneManager : Photon.MonoBehaviour {
     GameObject Button3;
     GameObject Button4;
     */
-    bool hasAnswered;
+    //bool hasAnswered;
     public static int usersAnswerNum;
 
     float maxTime;
@@ -52,6 +53,7 @@ public class QuizSceneManager : Photon.MonoBehaviour {
     int quizTurn;
 
     public bool isRivalCorrect;
+    public CardSelectState rivalCard;
 
     List<Quizes> quizes = new List<Quizes>();
     public class Quizes
@@ -104,7 +106,7 @@ public class QuizSceneManager : Photon.MonoBehaviour {
                 StartCoroutine(WaitAction());
                 break;
             case GameState.Answer:
-                AnswerAction();
+                StartCoroutine(AnswerAction());
                 break;
             case GameState.Result:
                 StartCoroutine(ResultAction());
@@ -159,14 +161,15 @@ public class QuizSceneManager : Photon.MonoBehaviour {
 
 
     //分岐　長すぎ
-    void AnswerAction()
+    IEnumerator AnswerAction()
     {
         switch (myResultState)
         {
             case MyResultState.IsFast:
+
+                quizUIManager.ToMaxIncreaseRivalBar(multiQuizManager.otherTime);
                 if (IsAnswerCorrect())
                 {
-
                     QuizUIManager.DebugLogWindow("right!");
                     quizResults.Add(true);
                     break;
@@ -196,6 +199,8 @@ public class QuizSceneManager : Photon.MonoBehaviour {
                     }
                 }
             case MyResultState.IsSlow:
+
+                quizUIManager.ToMaxIncreaseRivalBar(multiQuizManager.otherTime);
                 if (isRivalCorrect)
                 {
 
@@ -226,6 +231,14 @@ public class QuizSceneManager : Photon.MonoBehaviour {
                 }
         }
 
+        if((myResultState == MyResultState.IsFast)||(myResultState == MyResultState.OnlyAnswer)){
+            yield return StartCoroutine(WinCoroutine());
+        }
+        else
+        {
+            yield return StartCoroutine(LoseCoroutine());
+        }
+
         //クイズが最後だったら
         if ((quizTurn + 1) == quizCount)
         {
@@ -246,6 +259,20 @@ public class QuizSceneManager : Photon.MonoBehaviour {
         yield return StartCoroutine(quizGetter.PostResult(quizTF,quizId,userId));
 
         quizUIManager.ShowBackButton();
+    }
+
+    IEnumerator WinCoroutine()
+    {
+        //戦う
+        CardSelectState myCard = cardUIManager.cardSelectState;
+        Debug.Log(rivalCard);
+        yield return new WaitForSeconds(3);
+    }
+
+    IEnumerator LoseCoroutine()
+    {
+        Debug.Log(rivalCard);
+        yield return new WaitForSeconds(3);
     }
     //コルーチンの結果をコールバックで受け取ってquizesに保存する
     public void SaveReceivedQuizes(List<QuizGetter.Quizes> receivedQuizes)
