@@ -171,6 +171,7 @@ public class QuizSceneManager : MonoBehaviour {
     {
         //相手のカードを出す
         cardUIManager.RivalCardShow(rivalCard);
+        Debug.Log(cardUIManager.myCardAttack[1]);
         cardAnimManager.SetCard(cardUIManager.cardSelectState, rivalCard, 50, 20);
         switch (myResultState)
         {

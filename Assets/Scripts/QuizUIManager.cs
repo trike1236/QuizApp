@@ -86,6 +86,7 @@ public class QuizUIManager : MonoBehaviour
 
         cardUIManager.SetCardStates(true);
         cardUIManager.SetCardStates(false);
+        cardUIManager.SetTextStates();
         //Debug用
 
     }
