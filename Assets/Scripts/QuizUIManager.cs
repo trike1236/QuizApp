@@ -53,9 +53,7 @@ public class QuizUIManager : MonoBehaviour
         BackButton.SetActive(false);
 
         cardUIManager = gameObject.GetComponent<CardUIManager>();
-
-        currentHP = HP;
-        currentRivalHP = rivalHP;
+        
     }
     void Start()
     {
@@ -83,6 +81,11 @@ public class QuizUIManager : MonoBehaviour
         HPGage = GameObject.Find("Canvas/MyHP").GetComponent<Image>();
         rivalHPGage = GameObject.Find("Canvas/RivalHP").GetComponent<Image>();
 
+        currentHP = HP;
+        currentRivalHP = rivalHP;
+
+        cardUIManager.SetCardStates(true);
+        cardUIManager.SetCardStates(false);
         //Debug用
 
     }

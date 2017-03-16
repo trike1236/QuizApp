@@ -31,6 +31,15 @@ public class CardUIManager : MonoBehaviour {
 
     public CardSelectState cardSelectState = CardSelectState.None;
     public CardSelectState RivalCardSelectState;
+
+    public List<float> myCardAttack = new List<float>();
+    public List<float> myCardGuard = new List<float>();
+    public List<float> rivalCardAttack = new List<float>();
+    public List<float> rivalCardGuard = new List<float>();
+
+    float atkmax = 40f;
+    float grdmax = 20f;
+
     GameObject RivalCardSelected;
 
     // Use this for initialization
@@ -127,10 +136,44 @@ public class CardUIManager : MonoBehaviour {
         }
     }
 
-    
 
-	// Update is called once per frame
-	void Update () {
-		
-	}
+    //カードにランダムな値をセット
+    public void SetCardStates(bool isMine)
+    {
+        for (int i = 0; i > 3; i++)
+        {
+            if (isMine)
+            {
+                myCardAttack.Add(ReturnRandomStates(true));
+                myCardGuard.Add(ReturnRandomStates(false));
+            }else
+            {
+                rivalCardAttack.Add(ReturnRandomStates(true));
+                rivalCardGuard.Add(ReturnRandomStates(false));
+            }
+        }
+        
+    }
+
+    float ReturnRandomStates(bool isAtk)
+    {
+        if (isAtk)
+        {
+            return Random.Range(grdmax, atkmax);
+        }
+        else return Random.Range(0, grdmax);
+    }
+
+    public float StateToFloat(CardSelectState card,bool isMine,bool isAtk)
+    {
+        if (isMine)
+        {
+            if (isAtk) return myCardAttack[(int)card];
+            else return myCardGuard[(int)card];
+        }else
+        {
+            if (isAtk) return rivalCardAttack[(int)card];
+            else return rivalCardGuard[(int)card];
+        }
+    }
 }

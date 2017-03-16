@@ -33,6 +33,7 @@ public class QuizSceneManager : MonoBehaviour {
     GameObject QuizManager;
     QuizUIManager quizUIManager;
     CardUIManager cardUIManager;
+    CardAnimManager cardAnimManager;
     QuizGetter quizGetter;
     MultiQuizManager multiQuizManager;
     GameObject userManager;
@@ -76,6 +77,7 @@ public class QuizSceneManager : MonoBehaviour {
         QuizManager = GameObject.Find("QuizManager");
         quizUIManager = gameObject.GetComponent<QuizUIManager>();
         cardUIManager = gameObject.GetComponent<CardUIManager>();
+        cardAnimManager = gameObject.GetComponent<CardAnimManager>();
         quizGetter = QuizManager.GetComponent<QuizGetter>();
         multiQuizManager = GameObject.Find("MultiQuizManager").GetComponent<MultiQuizManager>();
 
@@ -127,6 +129,8 @@ public class QuizSceneManager : MonoBehaviour {
         quizTurn = -1;      //ここ汚い
         //とりあえず時間のマックスは10秒に設定
         maxTime = 10f;
+        isLiving = true;
+        isRivalLiving = true;
         quizUIManager.GetUIPanel(maxTime);
         SetCurrentState(GameState.Prepare);
 	}
@@ -165,6 +169,9 @@ public class QuizSceneManager : MonoBehaviour {
     //分岐　長すぎ
     IEnumerator AnswerAction()
     {
+        //相手のカードを出す
+        cardUIManager.RivalCardShow(rivalCard);
+        cardAnimManager.SetCard(cardUIManager.cardSelectState, rivalCard, 50, 20);
         switch (myResultState)
         {
             case MyResultState.IsFast:
@@ -174,29 +181,33 @@ public class QuizSceneManager : MonoBehaviour {
                 {
                     QuizUIManager.DebugLogWindow("right!");
                     quizResults.Add(true);
+                    yield return StartCoroutine(cardAnimManager.FastCorrectCoroutine());
                     break;
                 }
                 else
                 {
                     QuizUIManager.DebugLogWindow("Wrong!");
                     quizResults.Add(false);
+                    yield return StartCoroutine(cardAnimManager.FastWrongCoroutine());
                     break;
                 }
 
             case MyResultState.OnlyAnswer:
                 {
+                    quizUIManager.ToEmptyBar(false);
+
                     if (IsAnswerCorrect())
                     {
-                        quizUIManager.ToEmptyBar(false);
                         QuizUIManager.DebugLogWindow("right!");
                         quizResults.Add(true);
+                        yield return StartCoroutine(cardAnimManager.FastCorrectCoroutine());
                         break;
                     }
                     else
                     {
-                        quizUIManager.ToEmptyBar(false);
                         QuizUIManager.DebugLogWindow("Wrong!");
                         quizResults.Add(false);
+                        yield return StartCoroutine(cardAnimManager.FastWrongCoroutine());
                         break;
                     }
                 }
@@ -208,44 +219,45 @@ public class QuizSceneManager : MonoBehaviour {
 
                     QuizUIManager.DebugLogWindow("Too Late");
                     quizResults.Add(false);
+                    yield return StartCoroutine(cardAnimManager.SlowCorrectCoroutine());
                     break;
                 }else
                 {
                     QuizUIManager.DebugLogWindow("Too Late");
                     quizResults.Add(false);
+                    yield return StartCoroutine(cardAnimManager.SlowWrongCoroutine());
                     break;
                 }
             case MyResultState.RivalAnswer:
+
+                quizUIManager.ToMaxIncreaseRivalBar(multiQuizManager.otherTime);
+                quizUIManager.ToEmptyBar(true);
+
                 if (isRivalCorrect)
                 {
-                    quizUIManager.ToMaxIncreaseRivalBar(multiQuizManager.otherTime);
-                    quizUIManager.ToEmptyBar(true);
-
                     QuizUIManager.DebugLogWindow("Too Late");
                     quizResults.Add(false);
+                    yield return StartCoroutine(cardAnimManager.SlowCorrectCoroutine());
                     break;
                 }
                 else
                 {
-                    quizUIManager.ToMaxIncreaseRivalBar(multiQuizManager.otherTime);
-                    quizUIManager.ToEmptyBar(true);
                     QuizUIManager.DebugLogWindow("Too Late");
                     quizResults.Add(false);
+                    yield return StartCoroutine(cardAnimManager.SlowWrongCoroutine());
                     break;
                 }
         }
-
-        //相手のカードを出す
-        cardUIManager.RivalCardShow(rivalCard);
-
+        
         if((myResultState == MyResultState.IsFast)||(myResultState == MyResultState.OnlyAnswer)){
-            yield return StartCoroutine(WinCoroutine());
+            //yield return StartCoroutine(FastCoroutine());
         }
         else
         {
-            yield return StartCoroutine(LoseCoroutine());
+            //yield return StartCoroutine(SlowCoroutine());
         }
 
+        yield return new WaitForSeconds(3);
         cardUIManager.RivalCardHide();
 
         //クイズが最後だったら
@@ -270,23 +282,25 @@ public class QuizSceneManager : MonoBehaviour {
         quizUIManager.ShowBackButton();
     }
 
-    IEnumerator WinCoroutine()
+    /*
+    IEnumerator FastWrongCoroutine()
     {
         //戦う
         CardSelectState myCard = cardUIManager.cardSelectState;
-
         //ゲージをダメージによって減らす　第2引数trueで自分の(fasleで相手)
         quizUIManager.DamageHPGage(30f, false);
         Debug.Log(rivalCard);
         yield return new WaitForSeconds(3);
     }
 
-    IEnumerator LoseCoroutine()
+    IEnumerator SlowWrongCoroutine()
     {
         quizUIManager.DamageHPGage(30f,true);
         Debug.Log(rivalCard);
         yield return new WaitForSeconds(3);
     }
+    */
+
     //コルーチンの結果をコールバックで受け取ってquizesに保存する
     public void SaveReceivedQuizes(List<QuizGetter.Quizes> receivedQuizes)
     {
@@ -332,11 +346,14 @@ public class QuizSceneManager : MonoBehaviour {
     string JoinQuizId(List<Quizes> list)
     {
         string postQuizId = "";
+        int i = 0;
         foreach(Quizes quiz in list)
         {
             Debug.Log(quiz.quiz_id);
             if (postQuizId == "") postQuizId = quiz.quiz_id.ToString();
             else postQuizId += "," + quiz.quiz_id.ToString();
+            i++;
+            if (i > quizTurn) return postQuizId;
         }
         return postQuizId;
     }
