@@ -25,22 +25,41 @@ public class MultiQuizManager : Photon.PunBehaviour {
         Lose
     }
 
-    void Start() {
+    void Awake() {
 
         quizUIManager = GameObject.Find("GameManager").GetComponent<QuizUIManager>();
         _photonView = PhotonView.Get(this);
-        quizSceneManager = QuizSceneManager.Instance.GetComponent<QuizSceneManager>();
+        quizSceneManager = GameObject.Find("GameManager").GetComponent<QuizSceneManager>();
         quizGetter = GameObject.Find("QuizManager").GetComponent<QuizGetter>();
         cardUIManager = GameObject.Find("GameManager").GetComponent<CardUIManager>();
     }
+    void Start()
+    {
 
+        //quizUIManager = GameObject.Find("GameManager").GetComponent<QuizUIManager>();
+        //_photonView = PhotonView.Get(this);
+        //quizSceneManager = GameObject.Find("GameManager").GetComponent<QuizSceneManager>();
+        //cardUIManager = GameObject.Find("GameManager").GetComponent<CardUIManager>();
+        //quizGetter = GameObject.Find("QuizManager").GetComponent<QuizGetter>();
+    }
     public IEnumerator WaitIntoRoom()
     {
-        //ルームに入るまで待つ
-        while (!PhotonNetwork.inRoom) yield return new WaitForEndOfFrame();
-        if (PhotonNetwork.isMasterClient) quizGetter.RandomRoomId();
-        while (quizGetter.quizRoomId == 0) yield return new WaitForEndOfFrame();
+        if (PhotonNetwork.isMasterClient)
+        {
+            ExitGames.Client.Photon.Hashtable ht = new ExitGames.Client.Photon.Hashtable();
+            ht.Add("RoomID", Random.Range(1, 9999));
+            PhotonNetwork.room.SetCustomProperties(ht);
+        }
+        //while (quizGetter.quizRoomId == 0) yield return new WaitForEndOfFrame();
+        while (PhotonNetwork.room.CustomProperties["RoomID"] == null)
+        {
+            Debug.Log("nulldayo");
+            yield return new WaitForEndOfFrame();
+        }
+        //Debug.Log((int)PhotonNetwork.room.CustomProperties["RoomID"]);
+        quizGetter.quizRoomId = (int)PhotonNetwork.room.CustomProperties["RoomID"];
         //UserManager.isRoomMaster = PhotonNetwork.isMasterClient;
+        yield return null;
     }
 
     public IEnumerator StartFromMaster(int quizTurn)
@@ -163,24 +182,47 @@ public class MultiQuizManager : Photon.PunBehaviour {
         myTime = 0;
         otherTime = 0;
     }
-
-    void OnPhotonPlayerConnected(PhotonPlayer player)
-    {
-        if (PhotonNetwork.isMasterClient)
-        {
-            if (quizGetter.quizRoomId == 0)
-            {
-                quizGetter.RandomRoomId();
-            }
-            _photonView.RPC("SendQuizRoomId",PhotonTargets.Others,quizGetter.quizRoomId);
-
-        }
-    }
-
+    
+   
+    /*
     [PunRPC]
     void SendQuizRoomId(int roomId)
     {
         quizGetter.quizRoomId = roomId;
+    }
+    */
+
+    //何故か配列が渡せないので強引に　クソすぎ
+    public void RPCSendMyCardStates()
+    {
+        float[] atk = new float[3];
+        cardUIManager.myCardAttack.CopyTo(atk, 0);
+        _photonView.RPC("SendMyCardStates", PhotonTargets.OthersBuffered,atk[0],atk[1],atk[2],cardUIManager.myCardGuard[0],cardUIManager.myCardGuard[1],cardUIManager.myCardGuard[2]);
+        Debug.Log(atk[1]);
+    }
+
+    [PunRPC]
+    void SendMyCardStates(float atk0, float atk1, float atk2, float grd0, float grd1, float grd2)
+    {
+        float[] atk = new float[3] { atk0, atk1, atk2 };
+        float[] grd = new float[3] { grd0, grd1, grd2 };
+        cardUIManager.CopySendedCard(atk, grd);
+        foreach (float f in atk)
+        {
+            Debug.Log(f);
+        }
+    }
+
+    public void AllLeaveRoom()
+    {
+        _photonView.RPC("BackToMain", PhotonTargets.All);
+    }
+
+    [PunRPC]
+    public void BackToMain()
+    {
+        //PhotonNetwork.LoadLevel("Main");
+        PhotonNetwork.LeaveRoom();
     }
 
 }

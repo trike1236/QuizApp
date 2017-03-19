@@ -41,4 +41,6 @@ MonoBehaviour:
   - ReturnResult
   - StartFlag
   - SendQuizRoomId
+  - SendMyCardStates
+  - BackToMain
   DisableAutoOpenWizard: 1

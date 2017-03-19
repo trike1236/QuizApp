@@ -56,6 +56,15 @@ public class CardUIManager : MonoBehaviour {
 
     GameObject RivalCardSelected;
 
+    void Awake()
+    {
+        myCardAttack = new float[3];
+        myCardGuard = new float[3];
+        rivalCardAttack = new float[3];
+        rivalCardGuard = new float[3];
+
+    }
+
     // Use this for initialization
     void Start () {
         Card1 = GameObject.Find("Canvas/CardSelect/Card1");
@@ -74,10 +83,6 @@ public class CardUIManager : MonoBehaviour {
 
         rivalText1.text = "tako";
         
-        myCardAttack = new float[3];
-        myCardGuard = new float[3];
-        rivalCardAttack = new float[3];
-        rivalCardGuard = new float[3];
     }
 
     public void ChangeCardSelectState(CardSelectState state)
@@ -184,15 +189,27 @@ public class CardUIManager : MonoBehaviour {
         }
         
     }
-
-    public void SetTextStates()
+    
+    public void CopySendedCard(float[] attack,float[] guard)
     {
-        text1.text = "ATK : " + myCardAttack[0] + "\nGRD : " + myCardGuard[0];
-        text2.text = "ATK : " + myCardAttack[1] + "\nGRD : " + myCardGuard[1];
-        text3.text = "ATK : " + myCardAttack[2] + "\nGRD : " + myCardGuard[2];
-        rivalText1.text = "ATK : " + rivalCardAttack[0] + "\nGRD : " + rivalCardGuard[0];
-        rivalText2.text = "ATK : " + rivalCardAttack[1] + "\nGRD : " + rivalCardGuard[1];
-        rivalText3.text = "ATK : " + rivalCardAttack[2] + "\nGRD : " + rivalCardGuard[2];
+        attack.CopyTo(rivalCardAttack, 0);
+        guard.CopyTo(rivalCardGuard, 0);
+    }
+
+    public void SetTextStates(bool mine)
+    {
+        if (mine)
+        {
+            text1.text = "ATK : " + myCardAttack[0] + "\nDEF : " + myCardGuard[0];
+            text2.text = "ATK : " + myCardAttack[1] + "\nDEF : " + myCardGuard[1];
+            text3.text = "ATK : " + myCardAttack[2] + "\nDEF : " + myCardGuard[2];
+        }
+        else
+        {
+            rivalText1.text = "ATK : " + rivalCardAttack[0] + "\nDEF : " + rivalCardGuard[0];
+            rivalText2.text = "ATK : " + rivalCardAttack[1] + "\nDEF : " + rivalCardGuard[1];
+            rivalText3.text = "ATK : " + rivalCardAttack[2] + "\nDEF : " + rivalCardGuard[2];
+        }
     }
 
     float ReturnRandomStates(bool isAtk)

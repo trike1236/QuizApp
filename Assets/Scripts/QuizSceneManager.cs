@@ -22,13 +22,13 @@ public enum MyResultState
 }
 
 public class QuizSceneManager : MonoBehaviour {
-    public static QuizSceneManager Instance;
+    //public static QuizSceneManager Instance;
 
     private GameState currentGameState;
 
     private MyResultState myResultState;
     //クイズの個数　どこかで入力させる
-    int quizCount = 5;
+    int quizCount = 10;
 
     GameObject QuizManager;
     QuizUIManager quizUIManager;
@@ -73,7 +73,7 @@ public class QuizSceneManager : MonoBehaviour {
 
     void Awake()
     {
-        Instance = this;
+        //Instance = this;
         QuizManager = GameObject.Find("QuizManager");
         quizUIManager = gameObject.GetComponent<QuizUIManager>();
         cardUIManager = gameObject.GetComponent<CardUIManager>();
@@ -82,7 +82,10 @@ public class QuizSceneManager : MonoBehaviour {
         multiQuizManager = GameObject.Find("MultiQuizManager").GetComponent<MultiQuizManager>();
 
         userManager = UserManager.Instance.gameObject;
-        userManager.GetComponent<UserManager>().SaveUserData(2);
+    }
+
+    void Start()
+    {
         SetCurrentState(GameState.Start);
     }
 
@@ -126,12 +129,15 @@ public class QuizSceneManager : MonoBehaviour {
         //クイズを受信するコルーチンを呼び出す　終わったらリストをコピーする
         yield return StartCoroutine(multiQuizManager.WaitIntoRoom());
         yield return StartCoroutine(quizGetter.RequestQuizes(SaveReceivedQuizes,quizCount));
-        quizTurn = -1;      //ここ汚い
+        quizTurn = 0;      //ここ汚い
         //とりあえず時間のマックスは10秒に設定
         maxTime = 10f;
         isLiving = true;
         isRivalLiving = true;
         quizUIManager.GetUIPanel(maxTime);
+
+        //自分のステを相手に送信
+        multiQuizManager.RPCSendMyCardStates();
         SetCurrentState(GameState.Prepare);
 	}
 	
@@ -139,8 +145,7 @@ public class QuizSceneManager : MonoBehaviour {
     //クイズをUIに
     IEnumerator PrepareAction()
     {
-        quizTurn++;
-        Debug.Log("Turn : " + quizTurn);
+        Debug.Log("Turn : " + (quizTurn + 1));
         multiQuizManager.InitTime();
         myResultState = MyResultState.Wait;
 
@@ -149,6 +154,7 @@ public class QuizSceneManager : MonoBehaviour {
         yield return StartCoroutine(multiQuizManager.StartFromMaster(quizTurn));
 
         yield return new WaitForSeconds(1);quizUIManager.SetQuizOnPanel(quizes, quizTurn);
+        quizTurn = quizTurn + 1;
         SetCurrentState(GameState.Wait);
     }
 
@@ -250,19 +256,12 @@ public class QuizSceneManager : MonoBehaviour {
                 }
         }
         
-        if((myResultState == MyResultState.IsFast)||(myResultState == MyResultState.OnlyAnswer)){
-            //yield return StartCoroutine(FastCoroutine());
-        }
-        else
-        {
-            //yield return StartCoroutine(SlowCoroutine());
-        }
 
         yield return new WaitForSeconds(3);
         cardUIManager.RivalCardHide();
 
         //クイズが最後だったら
-        if (((quizTurn + 1) == quizCount) || !isLiving || !isRivalLiving)
+        if ((quizTurn == quizCount) || !isLiving || !isRivalLiving)
         {
             SetCurrentState(GameState.Result);
         }
@@ -282,25 +281,7 @@ public class QuizSceneManager : MonoBehaviour {
 
         quizUIManager.ShowBackButton();
     }
-
-    /*
-    IEnumerator FastWrongCoroutine()
-    {
-        //戦う
-        CardSelectState myCard = cardUIManager.cardSelectState;
-        //ゲージをダメージによって減らす　第2引数trueで自分の(fasleで相手)
-        quizUIManager.DamageHPGage(30f, false);
-        Debug.Log(rivalCard);
-        yield return new WaitForSeconds(3);
-    }
-
-    IEnumerator SlowWrongCoroutine()
-    {
-        quizUIManager.DamageHPGage(30f,true);
-        Debug.Log(rivalCard);
-        yield return new WaitForSeconds(3);
-    }
-    */
+    
 
     //コルーチンの結果をコールバックで受け取ってquizesに保存する
     public void SaveReceivedQuizes(List<QuizGetter.Quizes> receivedQuizes)
@@ -354,7 +335,7 @@ public class QuizSceneManager : MonoBehaviour {
             if (postQuizId == "") postQuizId = quiz.quiz_id.ToString();
             else postQuizId += "," + quiz.quiz_id.ToString();
             i++;
-            if (i > quizTurn) return postQuizId;
+            if (i > quizTurn-1) return postQuizId;
         }
         return postQuizId;
     }
@@ -373,7 +354,7 @@ public class QuizSceneManager : MonoBehaviour {
 
     public bool IsAnswerCorrect()
     {
-        if (usersAnswerNum == quizes[quizTurn].answer_num) return true;
+        if (usersAnswerNum == quizes[quizTurn-1].answer_num) return true;
         else return false;
     }
 

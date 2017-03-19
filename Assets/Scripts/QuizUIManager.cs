@@ -85,8 +85,9 @@ public class QuizUIManager : MonoBehaviour
         currentRivalHP = rivalHP;
 
         cardUIManager.SetCardStates(true);
-        cardUIManager.SetCardStates(false);
-        cardUIManager.SetTextStates();
+        cardUIManager.SetTextStates(true);
+        
+
         //Debug用
 
     }
@@ -104,6 +105,10 @@ public class QuizUIManager : MonoBehaviour
         //最初のみ実行　デフォルトでカード2が選択されているようにする
         if (cardUIManager.cardSelectState == CardSelectState.None) cardUIManager.ChangeCardSelectState(CardSelectState.Card2);
         cardUIManager.canSelectCard = true;
+
+
+        //相手のカードにステをセット
+        cardUIManager.SetTextStates(false);
 
         //Debug.Log(tmpquizes[i].text);
     }

@@ -454,6 +454,9 @@ PlayerSettings:
   vrEditorSettings: {}
   cloudServicesEnabled:
     Build: 0
+    Collab: 0
+    ErrorHub: 0
+    Hub: 0
     UNet: 1
   cloudProjectId: d529c835-4d71-4c71-8c2f-9c6e8d4d72d6
   projectName: New Unity Project 2 (1)

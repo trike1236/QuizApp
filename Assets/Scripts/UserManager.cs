@@ -71,9 +71,9 @@ public class UserManager : MonoBehaviour{
     }
 
 
-    public void SaveUserData(int id)
+    public void SaveUserData(int id,Action test)
     {
-        StartCoroutine(RequestUserData(() => Debug.Log("test"),id));
+        StartCoroutine(RequestUserData(test,id));
     }
 
     public void TestUserRequest()

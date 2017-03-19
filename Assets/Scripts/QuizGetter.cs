@@ -96,7 +96,7 @@ public class QuizGetter : MonoBehaviour {
         }
         else
         {
-            Debug.Log(result.text);
+            //Debug.Log(result.text);
             quizList = new List<Quizes>();
             //string[] quizArray = LitJson.JsonMapper.ToObject<string[]>(result.text);
             var quizArray = LitJson.JsonMapper.ToObject<string[]>(result.text);
