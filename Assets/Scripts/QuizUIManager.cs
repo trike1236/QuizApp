@@ -42,10 +42,19 @@ public class QuizUIManager : MonoBehaviour
     public float HP = 100f;
     public float currentHP;
     public Image HPGage;
+    Text myHPtext;
+    Text damageMine;
+    Vector3 myDamagePos;
 
     public float rivalHP = 100f;
     public float currentRivalHP;
     public Image rivalHPGage;
+    Text rivalHPtext;
+    Text damageRival;
+    Vector3 rivalDamagePos;
+    public Color damageColor;
+
+    public AnimationCurve _custumEasing;
 
     void Awake()
     {
@@ -81,6 +90,16 @@ public class QuizUIManager : MonoBehaviour
         HPGage = GameObject.Find("Canvas/MyHP").GetComponent<Image>();
         rivalHPGage = GameObject.Find("Canvas/RivalHP").GetComponent<Image>();
 
+        myHPtext = HPGage.transform.FindChild("HPtext").GetComponent<Text>();
+        rivalHPtext = rivalHPGage.transform.FindChild("HPtext").GetComponent<Text>();
+        damageMine = myHPtext.transform.FindChild("Text").GetComponent<Text>();
+        damageRival = rivalHPtext.transform.FindChild("Text").GetComponent<Text>();
+        myDamagePos = damageMine.transform.localPosition;
+        rivalDamagePos = damageRival.transform.localPosition;
+
+
+        ShowHPGageAndText();
+
         currentHP = HP;
         currentRivalHP = rivalHP;
 
@@ -110,6 +129,7 @@ public class QuizUIManager : MonoBehaviour
         //相手のカードにステをセット
         cardUIManager.SetTextStates(false);
 
+        ToEmptyBar(false);
         //Debug.Log(tmpquizes[i].text);
     }
 
@@ -203,6 +223,27 @@ public class QuizUIManager : MonoBehaviour
         }
     }
 
+    public void ShowHPGageAndText()
+    {
+        var sequence = DOTween.Sequence();
+        sequence.Join(DOVirtual.Float(0f, HP, 2.0f, value =>
+           {
+               myHPtext.text = Mathf.Round(value).ToString() + "/100";
+           }).SetEase(_custumEasing));
+        sequence.Join(DOVirtual.Float(0f, rivalHP, 2.0f, value =>
+        {
+            rivalHPtext.text = Mathf.Round(value).ToString() + "/100";
+        }).SetEase(_custumEasing));
+        sequence.Join(DOVirtual.Float(0f, HP, 2.0f, value =>
+        {
+            HPGage.fillAmount = value/HP;
+        }).SetEase(_custumEasing));
+        sequence.Join(DOVirtual.Float(0f, rivalHP, 2.0f, value =>
+        {
+            rivalHPGage.fillAmount = value/rivalHP;
+        }).SetEase(_custumEasing));
+    }
+
     //ゲージをmaxにしてtime分減らす動きをするメソッド
     //相手のバーのみなのでバーの指定はしない
     public void ToMaxIncreaseRivalBar(float time)
@@ -222,19 +263,44 @@ public class QuizUIManager : MonoBehaviour
 
     public void DamageHPGage(float damage,bool isMine)
     {
+        var sequence = DOTween.Sequence();
         if (isMine)
         {
-            DOVirtual.Float(currentHP / HP, (currentHP - damage) / HP, 1f, value =>
-        {
-            HPGage.fillAmount = value;
-        });
+            damageMine.text = "-" + Mathf.Round(damage).ToString();
+            damageMine.color = damageColor;
+            damageMine.transform.localPosition = myDamagePos;
+
+            if (damage > currentHP) damage = currentHP;
+            sequence.Join(DOVirtual.Float(currentHP / HP, (currentHP - damage) / HP, 1f, value =>
+            {
+                HPGage.fillAmount = value;
+            }));
+            sequence.Join(DOVirtual.Float(currentHP, currentHP - damage, 1f, value =>
+            {
+                myHPtext.text = Mathf.Round(value).ToString() + "/100";
+            }));
+
+            sequence.Join(damageMine.transform.DOLocalMoveY(30f, 2f));
+            sequence.Append(damageMine.DOColor(new Color(255f, 255f, 255f, 0f), 1f).OnComplete(()=> damageMine.text = ""));
             currentHP -= damage;
         }else
         {
-            DOVirtual.Float(currentRivalHP / rivalHP, (currentRivalHP - damage) / rivalHP, 1f, value =>
+            damageRival.text = "-" + Mathf.Round(damage).ToString();
+            damageRival.color = damageColor;
+            damageRival.transform.localPosition = rivalDamagePos;
+
+            if (damage > currentRivalHP) damage = currentRivalHP;
+            sequence.Join(DOVirtual.Float(currentRivalHP / rivalHP, (currentRivalHP - damage) / rivalHP, 1f, value =>
             {
                 rivalHPGage.fillAmount = value;
-            });
+            }));
+            sequence.Join(DOVirtual.Float(currentRivalHP, currentRivalHP - damage, 1f, value =>
+            {
+                rivalHPtext.text = Mathf.Round(value).ToString() + "/100";
+            }));
+
+            sequence.Join(damageRival.transform.DOLocalMoveY(-30f, 2f));
+            sequence.Append(damageRival.DOColor(new Color(255f, 255f, 255f, 0f), 1f).OnComplete(() => damageRival.text = ""));
             currentRivalHP -= damage;
 
         }
