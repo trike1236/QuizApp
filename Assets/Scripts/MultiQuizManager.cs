@@ -95,19 +95,20 @@ public class MultiQuizManager : Photon.PunBehaviour {
     }
     
 
-    public void SendAllAnswerTime(float time,bool answer,CardSelectState card) {
+    public void SendAllAnswerTime(float time,int answerNum,CardSelectState card) {
         myTime = time;
         Debug.Log(myTime);
-        _photonView.RPC("SendTimeRPC", PhotonTargets.Others,time,answer,card/*,isFasterThan()*/);
+        _photonView.RPC("SendTimeRPC", PhotonTargets.Others,time,answerNum,card);
 
     }
 
     [PunRPC]
-    void SendTimeRPC(float time,bool answer,CardSelectState card/*,UnityAction callback*/)
+    void SendTimeRPC(float time,int answer,CardSelectState card)
     {
         otherTime = time;
         quizSceneManager.rivalCard = card;
-        quizSceneManager.isRivalCorrect = answer;
+        quizSceneManager.rivalAnswerNum = answer;
+        quizSceneManager.isRivalCorrect = quizSceneManager.IsAnswerCorrect(answer);
         //いい感じに分岐
         if(myTime == 0)
         {
@@ -197,6 +198,8 @@ public class MultiQuizManager : Photon.PunBehaviour {
     {
         float[] atk = new float[3];
         cardUIManager.myCardAttack.CopyTo(atk, 0);
+
+        //ここ病気
         _photonView.RPC("SendMyCardStates", PhotonTargets.OthersBuffered,atk[0],atk[1],atk[2],cardUIManager.myCardGuard[0],cardUIManager.myCardGuard[1],cardUIManager.myCardGuard[2]);
         Debug.Log(atk[1]);
     }

@@ -9,17 +9,20 @@ public class QuizUIManager : MonoBehaviour
 
 
     GameObject quizTextPanel;
+
+    //ボタンのゲームオブジェクトじゃなくて下のtextのゲームオブジェクトを取得してた
     GameObject Button1;
     GameObject Button2;
     GameObject Button3;
     GameObject Button4;
+    //いいんだけど分かりにくすぎてバグのもとになる　書いたときの自分死ね
 
     GameObject Timer;
     Slider timerSlider;
     Slider rivalTimerSlider;
 
     MultiQuizManager multiQuizManager;
-
+    QuizSceneManager quizSceneManager;
     CardUIManager cardUIManager;
 
     public GameObject TestButton;
@@ -62,6 +65,7 @@ public class QuizUIManager : MonoBehaviour
         BackButton.SetActive(false);
 
         cardUIManager = gameObject.GetComponent<CardUIManager>();
+        quizSceneManager = gameObject.GetComponent<QuizSceneManager>();
         
     }
     void Start()
@@ -133,6 +137,30 @@ public class QuizUIManager : MonoBehaviour
         //Debug.Log(tmpquizes[i].text);
     }
 
+    //答えの番号を渡すと答えのstringが返ってくるメソッド　バカっぽい
+    public string RtnAnswerText(int answerNum)
+    {
+        string textFromButton;
+        switch (answerNum)
+        { 
+            case 0:
+                textFromButton = Button1.GetComponent<Text>().text;
+                break;
+            case 1:
+                textFromButton = Button2.GetComponent<Text>().text;
+                break;
+            case 2:
+                textFromButton = Button3.GetComponent<Text>().text;
+                break;
+            case 3:
+                textFromButton = Button4.GetComponent<Text>().text;
+                break;
+            default:
+                textFromButton = "error";
+                break;
+        }
+        return textFromButton;
+    }
 
     //ボタンが押されたらhasAnsweredがtrue
     //タイムアップでisTimeOverがtrueに
@@ -165,7 +193,7 @@ public class QuizUIManager : MonoBehaviour
         //答えたならタイマーはそのままで
         if (hasAnswered == true)
         {
-            multiQuizManager.SendAllAnswerTime(maxTime - timeCount,isAnswerCorrect,cardUIManager.cardSelectState);
+            multiQuizManager.SendAllAnswerTime(maxTime - timeCount,quizSceneManager.usersAnswerNum,cardUIManager.cardSelectState);
             yield break;
         }
         timeCount = 0f;

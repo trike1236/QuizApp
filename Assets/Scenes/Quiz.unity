@@ -3850,6 +3850,7 @@ GameObject:
   - component: {fileID: 1876121529}
   - component: {fileID: 1876121530}
   - component: {fileID: 1876121531}
+  - component: {fileID: 1876121532}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -3868,6 +3869,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 40e2691d9441e8542a6f44213c704b3d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  usersAnswerNum: 0
+  rivalAnswerNum: 0
   isRivalCorrect: 0
   rivalCard: 0
 --- !u!4 &1876121528
@@ -3954,6 +3957,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 90eafb9da911b9140929643bf1a70823, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1876121532
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1876121526}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d71378edb8cff97479cda587000851ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hukidashiDurSpeed: 0.4
 --- !u!224 &1893440589 stripped
 RectTransform:
   m_PrefabParentObject: {fileID: 224523027340644608, guid: bb1478d78c18fe84a83b3854bb5fe5c9,

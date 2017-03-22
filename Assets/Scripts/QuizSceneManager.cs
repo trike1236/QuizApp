@@ -37,22 +37,16 @@ public class QuizSceneManager : MonoBehaviour {
     QuizGetter quizGetter;
     MultiQuizManager multiQuizManager;
     GameObject userManager;
+    AnswerUIManager answerUIManager;
 
-
-    /*
-    GameObject quizTextPanel;
-    GameObject Button1;
-    GameObject Button2;
-    GameObject Button3;
-    GameObject Button4;
-    */
-    //bool hasAnswered;
-    public static int usersAnswerNum;
+    
+    public int usersAnswerNum;
 
     float maxTime;
     
     int quizTurn;
 
+    public int rivalAnswerNum;
     public bool isRivalCorrect;
     public CardSelectState rivalCard;
 
@@ -80,6 +74,7 @@ public class QuizSceneManager : MonoBehaviour {
         cardAnimManager = gameObject.GetComponent<CardAnimManager>();
         quizGetter = QuizManager.GetComponent<QuizGetter>();
         multiQuizManager = GameObject.Find("MultiQuizManager").GetComponent<MultiQuizManager>();
+        answerUIManager = gameObject.GetComponent<AnswerUIManager>();
 
         userManager = UserManager.Instance.gameObject;
     }
@@ -184,9 +179,11 @@ public class QuizSceneManager : MonoBehaviour {
             case MyResultState.IsFast:
 
                 quizUIManager.ToMaxIncreaseRivalBar(multiQuizManager.otherTime);
-                if (IsAnswerCorrect())
+                if (IsAnswerCorrect(usersAnswerNum))
                 {
                     QuizUIManager.DebugLogWindow("right!");
+                    //答えたときのフキダシとそれが正解かのアニメーションをする
+                    answerUIManager.ShowUserAnswer(usersAnswerNum, true, true);
                     quizResults.Add(true);
                     yield return StartCoroutine(cardAnimManager.FastCorrectCoroutine());
                     break;
@@ -194,6 +191,7 @@ public class QuizSceneManager : MonoBehaviour {
                 else
                 {
                     QuizUIManager.DebugLogWindow("Wrong!");
+                    answerUIManager.ShowUserAnswer(usersAnswerNum, true, false);
                     quizResults.Add(false);
                     yield return StartCoroutine(cardAnimManager.FastWrongCoroutine());
                     break;
@@ -203,9 +201,10 @@ public class QuizSceneManager : MonoBehaviour {
                 {
                     quizUIManager.ToEmptyBar(false);
 
-                    if (IsAnswerCorrect())
+                    if (IsAnswerCorrect(usersAnswerNum))
                     {
                         QuizUIManager.DebugLogWindow("right!");
+                        answerUIManager.ShowUserAnswer(usersAnswerNum, true, true);
                         quizResults.Add(true);
                         yield return StartCoroutine(cardAnimManager.FastCorrectCoroutine());
                         break;
@@ -213,6 +212,7 @@ public class QuizSceneManager : MonoBehaviour {
                     else
                     {
                         QuizUIManager.DebugLogWindow("Wrong!");
+                        answerUIManager.ShowUserAnswer(usersAnswerNum, true, false);
                         quizResults.Add(false);
                         yield return StartCoroutine(cardAnimManager.FastWrongCoroutine());
                         break;
@@ -225,12 +225,14 @@ public class QuizSceneManager : MonoBehaviour {
                 {
 
                     QuizUIManager.DebugLogWindow("Too Late");
+                    answerUIManager.ShowUserAnswer(usersAnswerNum, false, true);
                     quizResults.Add(false);
                     yield return StartCoroutine(cardAnimManager.SlowCorrectCoroutine());
                     break;
                 }else
                 {
                     QuizUIManager.DebugLogWindow("Too Late");
+                    answerUIManager.ShowUserAnswer(usersAnswerNum, false, false);
                     quizResults.Add(false);
                     yield return StartCoroutine(cardAnimManager.SlowWrongCoroutine());
                     break;
@@ -243,6 +245,7 @@ public class QuizSceneManager : MonoBehaviour {
                 if (isRivalCorrect)
                 {
                     QuizUIManager.DebugLogWindow("Too Late");
+                    answerUIManager.ShowUserAnswer(usersAnswerNum, false, true);
                     quizResults.Add(false);
                     yield return StartCoroutine(cardAnimManager.SlowCorrectCoroutine());
                     break;
@@ -250,6 +253,7 @@ public class QuizSceneManager : MonoBehaviour {
                 else
                 {
                     QuizUIManager.DebugLogWindow("Too Late");
+                    answerUIManager.ShowUserAnswer(usersAnswerNum, false, false);
                     quizResults.Add(false);
                     yield return StartCoroutine(cardAnimManager.SlowWrongCoroutine());
                     break;
@@ -311,7 +315,7 @@ public class QuizSceneManager : MonoBehaviour {
         {
             usersAnswerNum = answerNum;
             quizUIManager.hasAnswered = true;
-            quizUIManager.isAnswerCorrect = IsAnswerCorrect();
+            quizUIManager.isAnswerCorrect = IsAnswerCorrect(answerNum);
         }
     }
 
@@ -352,9 +356,9 @@ public class QuizSceneManager : MonoBehaviour {
         return postQuizTF.Substring(1);
     }
 
-    public bool IsAnswerCorrect()
+    public bool IsAnswerCorrect(int i)
     {
-        if (usersAnswerNum == quizes[quizTurn-1].answer_num) return true;
+        if (i == quizes[quizTurn-1].answer_num) return true;
         else return false;
     }
 
