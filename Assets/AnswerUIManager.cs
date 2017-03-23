@@ -20,7 +20,7 @@ public class AnswerUIManager : MonoBehaviour {
         //MyAnswerPanel = GameObject.Find("Canvas");
         //rivalAnswerPanel = GameObject.Find("Canvas//////////");
     }
-
+    /*
     public void ShowUserAnswer(int answerNum,bool isMyAnswered,bool isCorrect)
     {
         string ansText = quizUIManager.RtnAnswerText(answerNum);
@@ -40,6 +40,7 @@ public class AnswerUIManager : MonoBehaviour {
         ShowAnswerWrongOrCorrect(isCorrect, thisAnimObj);
     }
 
+   */
     void ShowAnswerWrongOrCorrect(bool isCorrect,GameObject AnimObj)
     {
         var _sequence = DOTween.Sequence();
