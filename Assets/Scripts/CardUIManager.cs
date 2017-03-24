@@ -81,7 +81,7 @@ public class CardUIManager : MonoBehaviour {
         rivalText2 = RivalCard2.transform.FindChild("Text").gameObject.GetComponent<Text>();
         rivalText3 = RivalCard3.transform.FindChild("Text").gameObject.GetComponent<Text>();
 
-        rivalText1.text = "tako";
+        rivalText1.text = "";
         
     }
 
