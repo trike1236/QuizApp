@@ -17,10 +17,10 @@ public class AnswerUIManager : MonoBehaviour {
     private void Awake()
     {
         quizUIManager = gameObject.GetComponent<QuizUIManager>();
-        //MyAnswerPanel = GameObject.Find("Canvas");
-        //rivalAnswerPanel = GameObject.Find("Canvas//////////");
+        MyAnswerPanel = GameObject.Find("Canvas/AnswerWindow/Mine");
+        rivalAnswerPanel = GameObject.Find("Canvas/AnswerWindow/Rival");
     }
-    /*
+    
     public void ShowUserAnswer(int answerNum,bool isMyAnswered,bool isCorrect)
     {
         string ansText = quizUIManager.RtnAnswerText(answerNum);
@@ -39,8 +39,7 @@ public class AnswerUIManager : MonoBehaviour {
         }
         ShowAnswerWrongOrCorrect(isCorrect, thisAnimObj);
     }
-
-   */
+    
     void ShowAnswerWrongOrCorrect(bool isCorrect,GameObject AnimObj)
     {
         var _sequence = DOTween.Sequence();

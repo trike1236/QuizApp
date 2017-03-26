@@ -143,22 +143,23 @@ public class QuizUIManager : MonoBehaviour
         string textFromButton;
         switch (answerNum)
         { 
-            case 0:
+            case 1:
                 textFromButton = Button1.GetComponent<Text>().text;
                 break;
-            case 1:
+            case 2:
                 textFromButton = Button2.GetComponent<Text>().text;
                 break;
-            case 2:
+            case 3:
                 textFromButton = Button3.GetComponent<Text>().text;
                 break;
-            case 3:
+            case 4:
                 textFromButton = Button4.GetComponent<Text>().text;
                 break;
             default:
                 textFromButton = "error";
                 break;
         }
+        Debug.Log("num:" + answerNum + "string: " + textFromButton);
         return textFromButton;
     }
 

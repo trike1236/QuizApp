@@ -12,6 +12,7 @@ public class PhotonManager : Photon.PunBehaviour{
         //勝手にロビーに入るようにする
         //本番はオフラインモードがある可能性があるのでfalse;
         PhotonNetwork.autoJoinLobby = true;
+        if(PhotonNetwork.connected)
         PhotonNetwork.ConnectUsingSettings("0.1");
     }
 
